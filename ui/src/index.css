@@ -1,0 +1,42 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+body {
+    font-family: 'Inter', sans-serif;
+    -webkit-tap-highlight-color: transparent;
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    visibility: hidden;
+}
+
+.hide-scrollbar::-webkit-scrollbar {
+    display: none;
+}
+
+.hide-scrollbar {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+}
+
+.story-gradient {
+    background: linear-gradient(45deg, #f97316 0%, #ea580c 50%, #db2777 100%);
+}
+
+.filled {
+    font-variation-settings: 'FILL' 1;
+}
+
+.font-variation-fill-1 {
+    font-variation-settings: 'FILL' 1;
+}
+
+/* Dev mode wrapper - centers the phone frame on screen */
+.dev-wrapper {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 100vw;
+    height: 100vh;
+}
