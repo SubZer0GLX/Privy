@@ -1,22 +1,58 @@
-import React from 'react';
+import React, { useState } from 'react';
+
+export interface GalleryPost {
+    thumbnail: string;
+    images: string[];
+    content?: string;
+    timestamp?: string;
+}
 
 interface GalleryGridProps {
-    images: string[];
+    posts: GalleryPost[];
     isLocked?: boolean;
     mediaCount?: number;
 }
 
-export const GalleryGrid: React.FC<GalleryGridProps> = ({ images, isLocked = false, mediaCount }) => {
+export const GalleryGrid: React.FC<GalleryGridProps> = ({ posts, isLocked = false, mediaCount }) => {
+    const [viewerPostIndex, setViewerPostIndex] = useState<number | null>(null);
+    const [viewerImageIndex, setViewerImageIndex] = useState(0);
+
+    const openViewer = (postIdx: number) => {
+        if (!isLocked) {
+            setViewerPostIndex(postIdx);
+            setViewerImageIndex(0);
+        }
+    };
+
+    const closeViewer = () => {
+        setViewerPostIndex(null);
+        setViewerImageIndex(0);
+    };
+
+    const currentPostImages = viewerPostIndex !== null ? posts[viewerPostIndex].images : [];
+
     return (
         <>
             <div className="grid grid-cols-3 gap-0.5">
-                {images.map((img, idx) => (
-                    <div key={idx} className="relative aspect-square bg-gray-100 overflow-hidden group">
+                {posts.map((post, idx) => (
+                    <div
+                        key={idx}
+                        className={`relative aspect-square bg-gray-100 dark:bg-gray-800 overflow-hidden group ${!isLocked ? 'cursor-pointer' : ''}`}
+                        onClick={() => openViewer(idx)}
+                    >
                         <img
-                            src={img}
+                            src={post.thumbnail}
                             alt="Post"
                             className={`w-full h-full object-cover transition-all duration-500 ${isLocked ? 'blur-md scale-110' : ''}`}
                         />
+
+                        {/* Multi-image badge */}
+                        {!isLocked && post.images.length > 1 && (
+                            <div className="absolute top-1.5 right-1.5 bg-black/60 backdrop-blur-sm px-1.5 py-0.5 rounded-md flex items-center gap-0.5 z-10">
+                                <span className="material-symbols-rounded text-white text-[12px]">collections</span>
+                                <span className="text-white text-[10px] font-bold">{post.images.length}</span>
+                            </div>
+                        )}
 
                         {isLocked && (
                             <div className="absolute inset-0 flex flex-col items-center justify-center bg-black/20 z-10">
@@ -34,8 +70,68 @@ export const GalleryGrid: React.FC<GalleryGridProps> = ({ images, isLocked = fal
             </div>
 
             {isLocked && mediaCount !== undefined && (
-                <div className="p-8 text-center text-gray-400 text-sm">
-                    <p>Subscribe to unlock {mediaCount} posts</p>
+                <div className="p-8 text-center text-gray-400 dark:text-gray-500 text-sm">
+                    <p>Assine para desbloquear {mediaCount} posts</p>
+                </div>
+            )}
+
+            {/* Image Viewer Modal */}
+            {viewerPostIndex !== null && (
+                <div className="fixed inset-0 z-[100] bg-black/95 flex items-center justify-center animate-fade-in select-none">
+                    {/* Close button */}
+                    <button
+                        onClick={closeViewer}
+                        className="absolute top-4 right-4 z-10 w-10 h-10 rounded-full bg-white/10 backdrop-blur-md flex items-center justify-center text-white hover:bg-white/20 transition-colors"
+                    >
+                        <span className="material-symbols-rounded">close</span>
+                    </button>
+
+                    {/* Counter */}
+                    {currentPostImages.length > 1 && (
+                        <div className="absolute top-4 left-4 bg-white/10 backdrop-blur-md px-3 py-1.5 rounded-full">
+                            <span className="text-white text-xs font-bold">{viewerImageIndex + 1}/{currentPostImages.length}</span>
+                        </div>
+                    )}
+
+                    {/* Previous button */}
+                    {viewerImageIndex > 0 && (
+                        <button
+                            onClick={() => setViewerImageIndex(viewerImageIndex - 1)}
+                            className="absolute left-3 top-1/2 -translate-y-1/2 w-10 h-10 rounded-full bg-white/10 backdrop-blur-md flex items-center justify-center text-white hover:bg-white/20 active:scale-90 transition-all"
+                        >
+                            <span className="material-symbols-rounded">chevron_left</span>
+                        </button>
+                    )}
+
+                    {/* Image */}
+                    <img
+                        src={currentPostImages[viewerImageIndex]}
+                        alt="Viewer"
+                        className="max-w-full max-h-[85vh] object-contain"
+                    />
+
+                    {/* Next button */}
+                    {viewerImageIndex < currentPostImages.length - 1 && (
+                        <button
+                            onClick={() => setViewerImageIndex(viewerImageIndex + 1)}
+                            className="absolute right-3 top-1/2 -translate-y-1/2 w-10 h-10 rounded-full bg-white/10 backdrop-blur-md flex items-center justify-center text-white hover:bg-white/20 active:scale-90 transition-all"
+                        >
+                            <span className="material-symbols-rounded">chevron_right</span>
+                        </button>
+                    )}
+
+                    {/* Dot indicators */}
+                    {currentPostImages.length > 1 && (
+                        <div className="absolute bottom-6 left-1/2 -translate-x-1/2 flex gap-1.5">
+                            {currentPostImages.map((_, idx) => (
+                                <button
+                                    key={idx}
+                                    onClick={() => setViewerImageIndex(idx)}
+                                    className={`h-1.5 rounded-full transition-all ${idx === viewerImageIndex ? 'bg-white w-4' : 'bg-white/40 w-1.5 hover:bg-white/60'}`}
+                                />
+                            ))}
+                        </div>
+                    )}
                 </div>
             )}
         </>

@@ -240,7 +240,7 @@ RegisterNetEvent("privy:server:updateProfile", function(data)
 
     MySQL.query.await([[
         UPDATE privy_users
-        SET display_name = ?, username = ?, bio = ?, is_premium = ?, price = ?, avatar = ?, banner = ?
+        SET display_name = ?, username = ?, bio = ?, is_premium = ?, price = ?, payment_currency = ?, avatar = ?, banner = ?
         WHERE id = ?
     ]], {
         data.displayName or data.display_name,
@@ -248,6 +248,7 @@ RegisterNetEvent("privy:server:updateProfile", function(data)
         data.bio,
         data.isPremium and 1 or 0,
         data.price or 0,
+        data.paymentCurrency or 'cash',
         data.avatar,
         data.banner,
         userId

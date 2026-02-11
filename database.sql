@@ -8,6 +8,7 @@ CREATE TABLE IF NOT EXISTS `privy_users` (
     `bio` TEXT DEFAULT NULL,
     `is_premium` TINYINT(1) NOT NULL DEFAULT 0,
     `price` DECIMAL(10, 2) NOT NULL DEFAULT 0.00,
+    `payment_currency` VARCHAR(10) NOT NULL DEFAULT 'cash',
     `created_at` TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 

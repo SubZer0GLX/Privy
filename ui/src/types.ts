@@ -1,3 +1,5 @@
+export type PaymentCurrency = 'cash' | 'diamonds';
+
 export interface User {
     id: string;
     username: string;
@@ -6,10 +8,18 @@ export interface User {
     isVerified?: boolean;
 }
 
+export interface StoryItem {
+    id: string;
+    image: string;
+    caption?: string;
+    timestamp: string;
+}
+
 export interface Story {
     id: string;
     user: User;
     hasUnseen: boolean;
+    items: StoryItem[];
 }
 
 export interface Post {
@@ -18,9 +28,10 @@ export interface Post {
     timestamp: string;
     content: string;
     image?: string;
+    images?: string[];
     likes: number;
     comments: number;
     tipAmount?: number;
 }
 
-export type NavTab = 'home' | 'search' | 'create' | 'messages' | 'profile';
+export type NavTab = 'home' | 'search' | 'messages' | 'profile';

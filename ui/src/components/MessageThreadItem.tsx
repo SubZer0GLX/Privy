@@ -22,30 +22,30 @@ export const MessageThreadItem: React.FC<MessageThreadItemProps> = ({
     return (
         <div
             onClick={onClick}
-            className="flex items-center px-5 py-4 border-b border-gray-50 hover:bg-gray-50 active:bg-gray-100 transition-colors cursor-pointer"
+            className="flex items-center px-5 py-4 border-b border-gray-50 dark:border-gray-800 hover:bg-gray-50 dark:hover:bg-gray-800/50 active:bg-gray-100 dark:active:bg-gray-700 transition-colors cursor-pointer"
         >
             <div className="relative shrink-0">
                 <img
                     src={avatar}
                     alt={name}
-                    className="w-14 h-14 rounded-full object-cover border border-gray-100"
+                    className="w-14 h-14 rounded-full object-cover border border-gray-100 dark:border-gray-700"
                 />
                 {isOnline && (
-                    <span className="absolute bottom-0.5 right-0.5 w-3.5 h-3.5 bg-green-500 border-2 border-white rounded-full"></span>
+                    <span className="absolute bottom-0.5 right-0.5 w-3.5 h-3.5 bg-green-500 border-2 border-white dark:border-gray-900 rounded-full"></span>
                 )}
             </div>
 
             <div className="flex-1 ml-4 min-w-0">
                 <div className="flex justify-between items-baseline mb-0.5">
-                    <h3 className={`text-[16px] truncate ${unreadCount ? 'font-bold text-gray-900' : 'font-semibold text-gray-800'}`}>
+                    <h3 className={`text-[16px] truncate ${unreadCount ? 'font-bold text-gray-900 dark:text-white' : 'font-semibold text-gray-800 dark:text-gray-200'}`}>
                         {name}
                     </h3>
-                    <span className={`text-xs ${unreadCount ? 'text-orange-500 font-bold' : 'text-gray-400'}`}>
+                    <span className={`text-xs ${unreadCount ? 'text-orange-500 font-bold' : 'text-gray-400 dark:text-gray-500'}`}>
                         {time}
                     </span>
                 </div>
                 <div className="flex justify-between items-center">
-                    <p className={`text-sm truncate pr-2 ${unreadCount ? 'text-gray-900 font-medium' : 'text-gray-500'}`}>
+                    <p className={`text-sm truncate pr-2 ${unreadCount ? 'text-gray-900 dark:text-white font-medium' : 'text-gray-500 dark:text-gray-400'}`}>
                         {lastMessage}
                     </p>
                     {unreadCount && (

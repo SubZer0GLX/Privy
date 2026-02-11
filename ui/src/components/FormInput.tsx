@@ -19,10 +19,10 @@ export const FormInput: React.FC<FormInputProps> = ({
     variant = 'underline',
     rows,
 }) => {
-    const labelClass = "block text-xs font-bold text-gray-400 uppercase tracking-wider mb-1";
+    const labelClass = "block text-xs font-bold text-gray-400 dark:text-gray-500 uppercase tracking-wider mb-1";
 
     if (variant === 'boxed') {
-        const baseClass = "w-full bg-gray-50 border border-gray-200 rounded-lg px-4 py-3 text-gray-900 focus:outline-none focus:ring-2 focus:ring-orange-500/50";
+        const baseClass = "w-full bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-600 rounded-lg px-4 py-3 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-orange-500/50";
 
         if (rows) {
             return (
@@ -54,14 +54,14 @@ export const FormInput: React.FC<FormInputProps> = ({
     }
 
     return (
-        <div className="border-b border-gray-200">
+        <div className="border-b border-gray-200 dark:border-gray-700">
             <label className={labelClass}>{label}</label>
             <input
                 type={type}
                 placeholder={placeholder}
                 value={value}
                 onChange={(e) => onChange(e.target.value)}
-                className="w-full bg-transparent border-none p-0 pb-3 text-lg text-gray-900 placeholder-gray-300 focus:ring-0 outline-none"
+                className="w-full bg-transparent border-none p-0 pb-3 text-lg text-gray-900 dark:text-white placeholder-gray-300 dark:placeholder-gray-600 focus:ring-0 outline-none"
             />
         </div>
     );

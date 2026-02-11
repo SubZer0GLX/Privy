@@ -118,9 +118,9 @@ export const MessagesScreen: React.FC<MessagesScreenProps> = ({ onUserClick }) =
     }
 
     return (
-        <div className="flex flex-col min-h-full bg-white pb-24">
-            <div className="sticky top-0 z-30 bg-white/95 backdrop-blur-md px-4 py-3 border-b border-gray-100">
-                <h1 className="text-2xl font-bold text-gray-900 mb-4 px-1">Messages</h1>
+        <div className="flex flex-col min-h-full bg-white dark:bg-gray-900 pb-24">
+            <div className="sticky top-0 z-30 bg-white/95 dark:bg-gray-900/95 backdrop-blur-md px-4 py-3 border-b border-gray-100 dark:border-gray-700">
+                <h1 className="text-2xl font-bold text-gray-900 dark:text-white mb-4 px-1">Messages</h1>
                 <SearchBar placeholder="Search people..." />
             </div>
 

@@ -8,6 +8,8 @@ import { MessagesScreen } from './screens/MessagesScreen';
 import { UserProfileScreen } from './screens/UserProfileScreen';
 import { BottomNav } from './components/BottomNav';
 import { NotificationsPanel, Notification, MOCK_NOTIFICATIONS } from './components/NotificationsPanel';
+import { CreateStoryScreen } from './screens/CreateStoryScreen';
+import { CreatePostScreen } from './screens/CreatePostScreen';
 import { fetchNui, isDevMode } from './utils/nui';
 
 const App: React.FC = () => {
@@ -16,7 +18,10 @@ const App: React.FC = () => {
     const [viewingProfileId, setViewingProfileId] = useState<string | null>(null);
     const [currentUser, setCurrentUser] = useState<any>(null);
     const [showNotifications, setShowNotifications] = useState(false);
+    const [showCreateStory, setShowCreateStory] = useState(false);
+    const [showCreatePost, setShowCreatePost] = useState(false);
     const [notifications, setNotifications] = useState<Notification[]>(MOCK_NOTIFICATIONS);
+    const [darkMode, setDarkMode] = useState(false);
 
     const unreadCount = notifications.filter(n => !n.isRead).length;
 
@@ -43,6 +48,14 @@ const App: React.FC = () => {
         setIsAuthenticated(true);
     };
 
+    const handleTabChange = (tab: NavTab) => {
+        setCurrentTab(tab);
+        setShowCreatePost(false);
+        setShowCreateStory(false);
+        setShowNotifications(false);
+        setViewingProfileId(null);
+    };
+
     const handleUserClick = (userId: string) => {
         setShowNotifications(false);
         setViewingProfileId(userId);
@@ -62,66 +75,80 @@ const App: React.FC = () => {
     };
 
     if (!isAuthenticated) {
-        return <LoginScreen onLogin={handleLogin} />;
+        return (
+            <div className={`h-full ${darkMode ? 'dark' : ''}`}>
+                <LoginScreen onLogin={handleLogin} />
+            </div>
+        );
     }
 
     return (
-        <div className="flex flex-col h-screen bg-white overflow-hidden">
-            {/* Global Header (Only show if not viewing a profile and on home) */}
-            {!viewingProfileId && currentTab === 'home' && (
-                <header className="flex items-center justify-between px-4 py-3 border-b border-gray-100 bg-white/90 backdrop-blur-md sticky top-0 z-50">
-                    <div className="flex items-center gap-1">
-                        <span className="material-symbols-rounded text-orange-500 text-3xl">cloud</span>
-                        <span className="font-bold text-xl tracking-tight text-gray-900">PRIVY</span>
-                    </div>
-                    <button
-                        onClick={() => setShowNotifications(true)}
-                        className="relative cursor-pointer"
-                    >
-                        <span className="material-symbols-rounded text-gray-700 text-2xl">notifications</span>
-                        {unreadCount > 0 && (
-                            <span className="absolute top-0 right-0 w-2.5 h-2.5 bg-orange-500 rounded-full border-2 border-white"></span>
-                        )}
-                    </button>
-                </header>
-            )}
-
-            {/* Main Content Area */}
-            <main className="flex-1 overflow-y-auto hide-scrollbar relative">
-                {/* Notifications Panel */}
-                {showNotifications && (
-                    <NotificationsPanel
-                        notifications={notifications}
-                        onClose={() => setShowNotifications(false)}
-                        onUserClick={handleUserClick}
-                        onMarkAllRead={handleMarkAllRead}
-                    />
+        <div className={`h-full ${darkMode ? 'dark' : ''}`}>
+            <div className="flex flex-col h-full bg-white dark:bg-gray-900 overflow-hidden">
+                {/* Global Header (Only show if not viewing a profile and on home) */}
+                {!viewingProfileId && currentTab === 'home' && (
+                    <header className="flex items-center justify-between px-4 py-3 border-b border-gray-100 dark:border-gray-700 bg-white/90 dark:bg-gray-900/90 backdrop-blur-md sticky top-0 z-50">
+                        <div className="flex items-center gap-1">
+                            <span className="material-symbols-rounded text-orange-500 text-3xl">cloud</span>
+                            <span className="font-bold text-xl tracking-tight text-gray-900 dark:text-white">PRIVY</span>
+                        </div>
+                        <button
+                            onClick={() => setShowNotifications(true)}
+                            className="relative cursor-pointer"
+                        >
+                            <span className="material-symbols-rounded text-gray-700 dark:text-gray-300 text-2xl">notifications</span>
+                            {unreadCount > 0 && (
+                                <span className="absolute top-0 right-0 w-2.5 h-2.5 bg-orange-500 rounded-full border-2 border-white dark:border-gray-900"></span>
+                            )}
+                        </button>
+                    </header>
                 )}
 
-                {viewingProfileId ? (
-                    <div className="absolute inset-0 z-50 bg-white">
-                        <UserProfileScreen userId={viewingProfileId} onBack={handleBackFromProfile} />
-                    </div>
-                ) : (
-                    <>
-                        {currentTab === 'home' && <HomeScreen onUserClick={handleUserClick} />}
-                        {currentTab === 'search' && <DiscoveryScreen onUserClick={handleUserClick} />}
-                        {currentTab === 'messages' && <MessagesScreen onUserClick={handleUserClick} />}
-                        {currentTab === 'profile' && <ProfileScreen onLogout={handleLogout} />}
-                        {currentTab === 'create' && (
-                            <div className="flex flex-col items-center justify-center h-[60vh] text-gray-400">
-                                <span className="material-symbols-rounded text-6xl mb-4 text-gray-200">construction</span>
-                                <p>Work in Progress</p>
-                            </div>
-                        )}
-                    </>
-                )}
-            </main>
+                {/* Main Content Area */}
+                <main className="flex-1 overflow-y-auto hide-scrollbar relative">
+                    {/* Create Story Overlay */}
+                    {showCreateStory && (
+                        <div className="absolute inset-0 z-[70] bg-white dark:bg-gray-900">
+                            <CreateStoryScreen onClose={() => setShowCreateStory(false)} />
+                        </div>
+                    )}
 
-            {/* Hide Bottom Nav when viewing another user's profile */}
-            {!viewingProfileId && (
-                <BottomNav currentTab={currentTab} onTabChange={setCurrentTab} />
-            )}
+                    {/* Create Post Overlay */}
+                    {showCreatePost && (
+                        <div className="absolute inset-0 z-[70] bg-white dark:bg-gray-900">
+                            <CreatePostScreen onClose={() => setShowCreatePost(false)} />
+                        </div>
+                    )}
+
+                    {/* Notifications Panel */}
+                    {showNotifications && (
+                        <NotificationsPanel
+                            notifications={notifications}
+                            onClose={() => setShowNotifications(false)}
+                            onUserClick={handleUserClick}
+                            onMarkAllRead={handleMarkAllRead}
+                        />
+                    )}
+
+                    {viewingProfileId ? (
+                        <div className="absolute inset-0 z-50 bg-white dark:bg-gray-900">
+                            <UserProfileScreen userId={viewingProfileId} onBack={handleBackFromProfile} />
+                        </div>
+                    ) : (
+                        <>
+                            {currentTab === 'home' && <HomeScreen onUserClick={handleUserClick} onCreateStory={() => setShowCreateStory(true)} />}
+                            {currentTab === 'search' && <DiscoveryScreen onUserClick={handleUserClick} />}
+                            {currentTab === 'messages' && <MessagesScreen onUserClick={handleUserClick} />}
+                            {currentTab === 'profile' && <ProfileScreen onLogout={handleLogout} darkMode={darkMode} onDarkModeChange={setDarkMode} />}
+                        </>
+                    )}
+                </main>
+
+                {/* Hide Bottom Nav when viewing another user's profile */}
+                {!viewingProfileId && (
+                    <BottomNav currentTab={currentTab} onTabChange={handleTabChange} onCreatePost={() => setShowCreatePost(true)} />
+                )}
+            </div>
         </div>
     );
 };

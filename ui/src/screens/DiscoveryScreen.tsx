@@ -58,8 +58,8 @@ export const DiscoveryScreen: React.FC<DiscoveryScreenProps> = ({ onUserClick })
     }, []);
 
     return (
-        <div className="pb-24">
-            <div className="sticky top-0 bg-white/80 backdrop-blur-md z-40 border-b border-gray-100 px-4 py-3">
+        <div className="pb-24 bg-white dark:bg-gray-900">
+            <div className="sticky top-0 bg-white/80 dark:bg-gray-900/80 backdrop-blur-md z-40 border-b border-gray-100 dark:border-gray-700 px-4 py-3">
                 <SearchBar placeholder="Search Posts" />
             </div>
 
@@ -67,11 +67,11 @@ export const DiscoveryScreen: React.FC<DiscoveryScreenProps> = ({ onUserClick })
                 <div className="flex items-center justify-between mb-4">
                     <div className="flex items-center gap-2">
                         <span className="material-symbols-rounded text-orange-500">bar_chart</span>
-                        <h2 className="font-bold text-lg text-gray-800">Suggestions</h2>
+                        <h2 className="font-bold text-lg text-gray-800 dark:text-white">Suggestions</h2>
                     </div>
                     <div className="flex gap-4">
-                         <button className="material-symbols-rounded text-gray-400 hover:text-orange-500">visibility_off</button>
-                         <button className="material-symbols-rounded text-gray-400 hover:text-orange-500">refresh</button>
+                         <button className="material-symbols-rounded text-gray-400 dark:text-gray-500 hover:text-orange-500">visibility_off</button>
+                         <button className="material-symbols-rounded text-gray-400 dark:text-gray-500 hover:text-orange-500">refresh</button>
                     </div>
                 </div>
 
@@ -90,9 +90,9 @@ export const DiscoveryScreen: React.FC<DiscoveryScreenProps> = ({ onUserClick })
                 </div>
 
                 <div className="flex justify-center items-center gap-1.5 mt-4">
-                    <span className="w-2 h-2 rounded-full bg-gray-400"></span>
-                    <span className="w-1.5 h-1.5 rounded-full bg-gray-300"></span>
-                    <span className="w-1.5 h-1.5 rounded-full bg-gray-300"></span>
+                    <span className="w-2 h-2 rounded-full bg-gray-400 dark:bg-gray-500"></span>
+                    <span className="w-1.5 h-1.5 rounded-full bg-gray-300 dark:bg-gray-600"></span>
+                    <span className="w-1.5 h-1.5 rounded-full bg-gray-300 dark:bg-gray-600"></span>
                 </div>
             </section>
         </div>
