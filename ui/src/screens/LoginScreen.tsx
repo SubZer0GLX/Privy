@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { fetchNui, isDevMode } from '../utils/nui';
 import { FormInput } from '../components/FormInput';
+import appIcon from '/icone.png';
 
 interface LoginScreenProps {
     onLogin: (user?: any) => void;
@@ -71,9 +72,7 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({ onLogin }) => {
             <div className="flex-1 px-8 py-4 overflow-y-auto flex flex-col items-center">
                 {/* Logo Area */}
                 <div className="flex justify-center items-center space-x-2 mt-16 mb-4">
-                    <div className="bg-orange-500 p-2 rounded-xl text-white">
-                         <span className="material-symbols-rounded text-3xl">lock_open</span>
-                    </div>
+                    <img src={appIcon} alt="Privy" className="w-10 h-10 object-contain" />
                     <h1 className="text-3xl font-bold tracking-tight text-orange-500">Privy</h1>
                 </div>
 

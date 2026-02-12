@@ -18,7 +18,7 @@ local function AddApp()
         size = 59812,
 
         ui = url:find("http") and url or GetCurrentResourceName() .. "/" .. url,
-        icon = url:find("http") and url .. "/public/icon.svg" or "https://cfx-nui-" .. GetCurrentResourceName() .. "/ui/dist/icon.svg",
+        icon = url:find("http") and url .. "/ui/public/logo.png" or "https://cfx-nui-" .. GetCurrentResourceName() .. "/ui/dist/logo.png",
 
         fixBlur = true,
 

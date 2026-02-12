@@ -1247,7 +1247,7 @@ RegisterNetEvent("privy:server:withdrawWallet", function(currency, amount)
         local fee = balance * 0.10
         local netAmount = balance - fee
         -- Give net amount to player
-        player.Functions.AddMoney('money', netAmount)
+        player.Functions.AddMoney('bank', netAmount)
         -- Reset wallet balance
         MySQL.query.await('UPDATE privy_wallet SET cash_balance = 0 WHERE user_id = ?', { userId })
         TriggerClientEvent("privy:client:withdrawWalletResponse", src, { success = true, amount = netAmount, currency = 'cash' })
@@ -1262,7 +1262,7 @@ RegisterNetEvent("privy:server:withdrawWallet", function(currency, amount)
         local fee = math.floor(balance * 0.10)
         local netAmount = balance - fee
         -- Give net amount to player
-        player.Functions.AddMoney('prima', netAmount)
+        player.Functions.AddMoney('prisma', netAmount)
         -- Reset wallet balance
         MySQL.query.await('UPDATE privy_wallet SET prisma_balance = 0 WHERE user_id = ?', { userId })
         TriggerClientEvent("privy:client:withdrawWalletResponse", src, { success = true, amount = netAmount, currency = 'prismas' })
@@ -1346,7 +1346,7 @@ RegisterNetEvent("privy:server:subscribe", function(creatorId)
         return
     end
 
-    local price = creator[1].price
+    local price = tonumber(creator[1].price) or 0
     local currency = creator[1].payment_currency
 
     -- Check if already subscribed
@@ -1357,11 +1357,30 @@ RegisterNetEvent("privy:server:subscribe", function(creatorId)
 
     -- TODO: Deduct money from player based on currency (cash or diamonds)
     -- This would integrate with your economy system, e.g.:
+    local player = exports.qbx_core:GetPlayer(src)
+    if not player then
+        TriggerClientEvent("privy:client:subscribeResponse", src, { success = false, message = "Player not found" })
+        return
+    end
+
     if currency == 'cash' then
-        local player = exports.qbx_core:GetPlayer(src)
-        -- if player.PlayerData.money.cash < price then ... end
-        player.Functions.RemoveMoney('money', price)
+        print(json.encode(player.PlayerData.money))
+        local cash = tonumber(player.PlayerData.money['cash']) or 0
+        local bank = tonumber(player.PlayerData.money['bank']) or 0
+        if cash >= price then
+            player.Functions.RemoveMoney('cash', price)
+        elseif bank >= price then
+            player.Functions.RemoveMoney('bank', price)
+        else
+            TriggerClientEvent("privy:client:subscribeResponse", src, { success = false, message = "Insufficient funds" })
+            return
+        end
     elseif currency == 'prismas' then
+        local prisma = tonumber(player.PlayerData.money['prisma']) or 0
+        if prisma < price then
+            TriggerClientEvent("privy:client:subscribeResponse", src, { success = false, message = "Insufficient funds" })
+            return
+        end
         player.Functions.RemoveMoney('prisma', price)
     end
 

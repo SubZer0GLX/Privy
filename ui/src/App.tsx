@@ -8,6 +8,7 @@ import { MessagesScreen } from './screens/MessagesScreen';
 import { UserProfileScreen } from './screens/UserProfileScreen';
 import { BottomNav } from './components/BottomNav';
 import { NotificationsPanel, Notification, MOCK_NOTIFICATIONS } from './components/NotificationsPanel';
+import appIcon from '/icone.png';
 import { CreateStoryScreen } from './screens/CreateStoryScreen';
 import { CreatePostScreen } from './screens/CreatePostScreen';
 import { PostCard } from './components/PostCard';
@@ -175,7 +176,7 @@ const App: React.FC = () => {
                 {!viewingProfileId && currentTab === 'home' && (
                     <header className="flex items-center justify-between px-4 pt-16 pb-3 border-b border-gray-100 dark:border-gray-700 bg-white/90 dark:bg-gray-900/90 backdrop-blur-md sticky top-0 z-50">
                         <div className="flex items-center gap-1">
-                            <span className="material-symbols-rounded text-orange-500 text-3xl">cloud</span>
+                            <img src={appIcon} alt="Privy" className="w-8 h-8 object-contain" />
                             <span className="font-bold text-xl tracking-tight text-gray-900 dark:text-white">PRIVY</span>
                         </div>
                         <button

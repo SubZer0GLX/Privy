@@ -894,6 +894,20 @@ export const ProfileScreen: React.FC<ProfileScreenProps> = ({ onLogout, darkMode
                                 border
                             />
                             <MenuItem
+                                icon="photo_library"
+                                label="My Posts"
+                                iconBg="bg-blue-50 dark:bg-blue-900/30"
+                                iconColor="text-blue-500"
+                                onClick={handleOpenMyPosts}
+                                rightContent={
+                                    <div className="flex items-center gap-2">
+                                        {myPosts.length > 0 && <span className="text-xs font-bold text-blue-500 bg-blue-50 dark:bg-blue-900/30 px-2 py-0.5 rounded-full">{myPosts.length}</span>}
+                                        <span className="material-symbols-rounded text-gray-400 dark:text-gray-500">chevron_right</span>
+                                    </div>
+                                }
+                                border
+                            />
+                            <MenuItem
                                 icon="auto_stories"
                                 label="My Stories"
                                 iconBg="bg-purple-50 dark:bg-purple-900/30"
