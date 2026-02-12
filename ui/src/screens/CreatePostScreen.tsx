@@ -2,8 +2,10 @@ import React, { useState } from 'react';
 import { fetchNui, isDevMode } from '../utils/nui';
 import { IMAGES } from '../constants';
 
+const isVideoUrl = (url: string) => /\.(mp4|webm|ogg|mov)(\?|$)/i.test(url);
+
 interface CreatePostScreenProps {
-    onClose: () => void;
+    onClose: (created?: boolean) => void;
 }
 
 export const CreatePostScreen: React.FC<CreatePostScreenProps> = ({ onClose }) => {
@@ -19,7 +21,7 @@ export const CreatePostScreen: React.FC<CreatePostScreenProps> = ({ onClose }) =
         if (!isDevMode() && step === 'gallery') {
             components.setGallery({
                 includeImages: true,
-                includeVideos: false,
+                includeVideos: true,
                 onSelect: (data) => {
                     const photo = Array.isArray(data) ? data[0] : data;
                     if (photo?.src) {
@@ -80,7 +82,7 @@ export const CreatePostScreen: React.FC<CreatePostScreenProps> = ({ onClose }) =
 
         setTimeout(() => {
             setPublishing(false);
-            onClose();
+            onClose(true);
         }, isDevMode() ? 600 : 0);
     };
 
@@ -106,7 +108,7 @@ export const CreatePostScreen: React.FC<CreatePostScreenProps> = ({ onClose }) =
 
         return (
             <div className="flex flex-col h-full bg-white dark:bg-gray-900">
-                <div className="flex items-center justify-between px-4 py-3 border-b border-gray-100 dark:border-gray-700">
+                <div className="flex items-center justify-between px-4 pt-16 pb-3 border-b border-gray-100 dark:border-gray-700">
                     <button onClick={onClose} className="p-1 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-full transition-colors">
                         <span className="material-symbols-rounded text-gray-700 dark:text-gray-300 text-2xl">close</span>
                     </button>
@@ -170,7 +172,7 @@ export const CreatePostScreen: React.FC<CreatePostScreenProps> = ({ onClose }) =
     return (
         <div className="flex flex-col h-full bg-white dark:bg-gray-900">
             {/* Header */}
-            <div className="flex items-center justify-between px-4 py-3 border-b border-gray-100 dark:border-gray-700">
+            <div className="flex items-center justify-between px-4 pt-16 pb-3 border-b border-gray-100 dark:border-gray-700">
                 <button
                     onClick={() => {
                         setDescription('');
@@ -189,7 +191,9 @@ export const CreatePostScreen: React.FC<CreatePostScreenProps> = ({ onClose }) =
                 {/* Image Preview Carousel */}
                 <div className="relative aspect-square w-full overflow-hidden bg-gray-100 dark:bg-gray-800 select-none">
                     {selectedImages.length > 0 && (
-                        <img src={selectedImages[previewIndex]} alt="Selected" className="w-full h-full object-cover" />
+                        isVideoUrl(selectedImages[previewIndex])
+                            ? <video src={selectedImages[previewIndex]} className="w-full h-full object-cover" controls playsInline />
+                            : <img src={selectedImages[previewIndex]} alt="Selected" className="w-full h-full object-cover" />
                     )}
 
                     {selectedImages.length > 1 && (
@@ -236,7 +240,14 @@ export const CreatePostScreen: React.FC<CreatePostScreenProps> = ({ onClose }) =
                                 onClick={() => setPreviewIndex(idx)}
                                 className={`w-14 h-14 rounded-lg overflow-hidden border-2 transition-all ${idx === previewIndex ? 'border-orange-500' : 'border-transparent opacity-70'}`}
                             >
-                                <img src={img} alt="" className="w-full h-full object-cover" />
+                                {isVideoUrl(img) ? (
+                                    <div className="w-full h-full bg-gray-800 flex items-center justify-center relative">
+                                        <video src={img} className="w-full h-full object-cover" muted playsInline />
+                                        <span className="material-symbols-rounded text-white text-sm absolute">play_arrow</span>
+                                    </div>
+                                ) : (
+                                    <img src={img} alt="" className="w-full h-full object-cover" />
+                                )}
                             </button>
                             <button
                                 onClick={() => handleRemoveImage(idx)}

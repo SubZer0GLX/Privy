@@ -111,6 +111,28 @@ CREATE TABLE IF NOT EXISTS `privy_reports` (
     FOREIGN KEY (`post_id`) REFERENCES `privy_posts`(`id`) ON DELETE SET NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
+CREATE TABLE IF NOT EXISTS `privy_wallet` (
+    `id` INT AUTO_INCREMENT PRIMARY KEY,
+    `user_id` INT NOT NULL UNIQUE,
+    `cash_balance` DECIMAL(10, 2) NOT NULL DEFAULT 0.00,
+    `prisma_balance` INT NOT NULL DEFAULT 0,
+    FOREIGN KEY (`user_id`) REFERENCES `privy_users`(`id`) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+CREATE TABLE IF NOT EXISTS `privy_notifications` (
+    `id` INT AUTO_INCREMENT PRIMARY KEY,
+    `user_id` INT NOT NULL,
+    `from_user_id` INT NOT NULL,
+    `type` ENUM('like', 'comment', 'follow', 'tip', 'message') NOT NULL,
+    `text` VARCHAR(255) NOT NULL,
+    `post_id` INT DEFAULT NULL,
+    `is_read` TINYINT(1) NOT NULL DEFAULT 0,
+    `created_at` TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (`user_id`) REFERENCES `privy_users`(`id`) ON DELETE CASCADE,
+    FOREIGN KEY (`from_user_id`) REFERENCES `privy_users`(`id`) ON DELETE CASCADE,
+    FOREIGN KEY (`post_id`) REFERENCES `privy_posts`(`id`) ON DELETE SET NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
 CREATE TABLE IF NOT EXISTS `privy_subscriptions` (
     `id` INT AUTO_INCREMENT PRIMARY KEY,
     `subscriber_id` INT NOT NULL,

@@ -9,9 +9,10 @@ interface MessageBubbleProps {
     type?: MessageType;
     mediaUrl?: string;
     amount?: number;
+    onMediaClick?: (url: string) => void;
 }
 
-export const MessageBubble: React.FC<MessageBubbleProps> = ({ content, time, fromMe, type = 'text', mediaUrl, amount }) => {
+export const MessageBubble: React.FC<MessageBubbleProps> = ({ content, time, fromMe, type = 'text', mediaUrl, amount, onMediaClick }) => {
     const bubbleBase = fromMe
         ? 'bg-orange-500 text-white rounded-br-md'
         : 'bg-white dark:bg-gray-800 text-gray-800 dark:text-gray-200 rounded-bl-md shadow-sm';
@@ -30,7 +31,7 @@ export const MessageBubble: React.FC<MessageBubbleProps> = ({ content, time, fro
                             <p className={`text-xs font-medium ${fromMe ? 'text-orange-100' : 'text-gray-500 dark:text-gray-400'}`}>
                                 {fromMe ? 'Payment sent' : 'Payment received'}
                             </p>
-                            <p className={`text-lg font-bold ${fromMe ? 'text-white' : 'text-green-600 dark:text-green-400'}`}>${amount?.toFixed(2)}</p>
+                            <p className={`text-lg font-bold ${fromMe ? 'text-white' : 'text-green-600 dark:text-green-400'}`}>${(parseFloat(amount as any) || 0).toFixed(2)}</p>
                         </div>
                     </div>
                     {content && <p className="text-[14px] leading-relaxed px-4 pt-2">{content}</p>}
@@ -44,7 +45,12 @@ export const MessageBubble: React.FC<MessageBubbleProps> = ({ content, time, fro
         return (
             <div className={`flex ${fromMe ? 'justify-end' : 'justify-start'}`}>
                 <div className={`max-w-[75%] rounded-2xl overflow-hidden ${bubbleBase}`}>
-                    <img src={mediaUrl} alt="Shared" className="w-full h-auto max-h-[250px] object-cover" />
+                    <img
+                        src={mediaUrl}
+                        alt="Shared"
+                        className="w-full h-auto max-h-[250px] object-cover cursor-pointer active:opacity-80 transition-opacity"
+                        onClick={() => onMediaClick?.(mediaUrl)}
+                    />
                     {content && <p className="text-[14px] leading-relaxed px-4 pt-2">{content}</p>}
                     <p className={`text-[10px] mt-1 ${timeClass} text-right px-4 pb-2.5`}>{time}</p>
                 </div>
@@ -56,7 +62,10 @@ export const MessageBubble: React.FC<MessageBubbleProps> = ({ content, time, fro
         return (
             <div className={`flex ${fromMe ? 'justify-end' : 'justify-start'}`}>
                 <div className={`max-w-[75%] rounded-2xl overflow-hidden ${bubbleBase}`}>
-                    <div className="relative">
+                    <div
+                        className="relative cursor-pointer active:opacity-80 transition-opacity"
+                        onClick={() => onMediaClick?.(mediaUrl)}
+                    >
                         <img src={mediaUrl} alt="Video" className="w-full h-auto max-h-[250px] object-cover" />
                         <div className="absolute inset-0 flex items-center justify-center bg-black/20">
                             <div className="w-12 h-12 rounded-full bg-white/90 flex items-center justify-center">

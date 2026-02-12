@@ -1,4 +1,5 @@
 import React from 'react';
+import { formatTimestamp } from '../utils/nui';
 
 interface MessageThreadItemProps {
     avatar: string;
@@ -41,7 +42,7 @@ export const MessageThreadItem: React.FC<MessageThreadItemProps> = ({
                         {name}
                     </h3>
                     <span className={`text-xs ${unreadCount ? 'text-orange-500 font-bold' : 'text-gray-400 dark:text-gray-500'}`}>
-                        {time}
+                        {formatTimestamp(time)}
                     </span>
                 </div>
                 <div className="flex justify-between items-center">

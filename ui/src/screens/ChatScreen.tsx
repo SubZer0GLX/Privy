@@ -1,5 +1,27 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { fetchNui, isDevMode } from '../utils/nui';
+import { fetchNui, isDevMode, formatTimestamp } from '../utils/nui';
+
+function formatChatTime(ts: any): string {
+    if (!ts) return '';
+    // Handle numeric timestamps (epoch ms)
+    if (typeof ts === 'number') {
+        const d = new Date(ts);
+        if (!isNaN(d.getTime())) return d.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+    }
+    const str = typeof ts === 'string' ? ts : String(ts);
+    if (/^\d{1,2}:\d{2}$/.test(str.trim())) return str;
+    // Handle pure numeric strings (epoch ms or s)
+    if (/^\d{10,13}$/.test(str.trim())) {
+        const epoch = parseInt(str.trim());
+        const d = new Date(epoch < 10000000000 ? epoch * 1000 : epoch);
+        if (!isNaN(d.getTime())) return d.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+    }
+    // MySQL timestamps use space separator, replace with T for reliable parsing
+    const normalized = str.trim().replace(/^(\d{4}-\d{2}-\d{2})\s+(\d{2}:\d{2}:\d{2})/, '$1T$2');
+    const date = new Date(normalized);
+    if (isNaN(date.getTime())) return str;
+    return date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+}
 import { MessageBubble, MessageType } from '../components/MessageBubble';
 import { IMAGES } from '../constants';
 
@@ -31,10 +53,11 @@ const MOCK_CHAT: ChatMessage[] = [
 ];
 
 export const ChatScreen: React.FC<ChatScreenProps> = ({ userId, userName, userAvatar, onBack, onUserClick }) => {
-    const [messages, setMessages] = useState<ChatMessage[]>(MOCK_CHAT);
+    const [messages, setMessages] = useState<ChatMessage[]>(isDevMode() ? MOCK_CHAT : []);
     const [input, setInput] = useState('');
     const [showActions, setShowActions] = useState(false);
     const [showPaymentModal, setShowPaymentModal] = useState(false);
+    const [viewingMedia, setViewingMedia] = useState<string | null>(null);
     const [paymentAmount, setPaymentAmount] = useState('');
     const [paymentNote, setPaymentNote] = useState('');
     const messagesEndRef = useRef<HTMLDivElement>(null);
@@ -42,21 +65,50 @@ export const ChatScreen: React.FC<ChatScreenProps> = ({ userId, userName, userAv
 
     useEffect(() => {
         if (!isDevMode()) {
-            fetchNui<any[]>('getChatMessages', { userId }, MOCK_CHAT as any).then((result) => {
-                if (Array.isArray(result) && result.length > 0) {
-                    const mapped: ChatMessage[] = result.map((m: any) => ({
-                        id: String(m.id),
-                        content: m.content,
-                        fromMe: m.from_me || false,
-                        time: m.time || m.created_at || '',
-                        type: m.type || 'text',
-                        mediaUrl: m.media_url,
-                        amount: m.amount
-                    }));
+            fetchNui<any[]>('getChatMessages', { userId }).then((result) => {
+                if (Array.isArray(result)) {
+                    const mapped: ChatMessage[] = result.map((m: any) => {
+                        const msgType = m.type || 'text';
+                        const isMedia = msgType === 'image' || msgType === 'video';
+                        return {
+                            id: String(m.id),
+                            content: isMedia ? '' : (m.content || ''),
+                            fromMe: m.isMine || m.from_me || false,
+                            time: formatChatTime(m.time || m.created_at || ''),
+                            type: msgType,
+                            mediaUrl: m.media_url || (isMedia ? m.content : undefined),
+                            amount: m.amount
+                        };
+                    });
                     setMessages(mapped);
                 }
             });
         }
+    }, [userId]);
+
+    // Listen for real-time incoming messages
+    useEffect(() => {
+        const handler = (event: MessageEvent) => {
+            const msg = event.data;
+            if (msg?.type === 'privy:newMessage' && msg.data) {
+                const d = msg.data;
+                // Only add if this message is from the user we're chatting with
+                if (String(d.sender_id) === String(userId)) {
+                    const newMsg: ChatMessage = {
+                        id: String(d.id),
+                        content: d.content || '',
+                        fromMe: false,
+                        time: formatChatTime(d.created_at) || now(),
+                        type: d.type || 'text',
+                        mediaUrl: d.media_url,
+                        amount: d.amount
+                    };
+                    setMessages(prev => [...prev, newMsg]);
+                }
+            }
+        };
+        window.addEventListener('message', handler);
+        return () => window.removeEventListener('message', handler);
     }, [userId]);
 
     useEffect(() => {
@@ -96,11 +148,30 @@ export const ChatScreen: React.FC<ChatScreenProps> = ({ userId, userName, userAv
         }
     };
 
-    const handleSendMedia = async (type: 'image' | 'video') => {
+    const handlePickGallery = () => {
         setShowActions(false);
 
         if (!isDevMode()) {
-            await fetchNui('sendMediaMessage', { userId, type });
+            components.setGallery({
+                includeImages: true,
+                includeVideos: false,
+                multiSelect: false,
+                onSelect: (data) => {
+                    const photo = Array.isArray(data) ? data[0] : data;
+                    if (photo?.src) {
+                        const newMsg: ChatMessage = {
+                            id: Date.now().toString(),
+                            content: '',
+                            fromMe: true,
+                            time: now(),
+                            type: 'image',
+                            mediaUrl: photo.src
+                        };
+                        setMessages(prev => [...prev, newMsg]);
+                        fetchNui('sendMessage', { userId, content: photo.src, type: 'image' });
+                    }
+                }
+            });
         } else {
             const mockUrl = IMAGES.posts.desert;
             const newMsg: ChatMessage = {
@@ -108,7 +179,45 @@ export const ChatScreen: React.FC<ChatScreenProps> = ({ userId, userName, userAv
                 content: '',
                 fromMe: true,
                 time: now(),
-                type,
+                type: 'image',
+                mediaUrl: mockUrl
+            };
+            setMessages(prev => [...prev, newMsg]);
+        }
+    };
+
+    const handleCaptureCamera = () => {
+        setShowActions(false);
+
+        if (!isDevMode()) {
+            useCamera(
+                (url: string) => {
+                    if (url) {
+                        const newMsg: ChatMessage = {
+                            id: Date.now().toString(),
+                            content: '',
+                            fromMe: true,
+                            time: now(),
+                            type: 'image',
+                            mediaUrl: url
+                        };
+                        setMessages(prev => [...prev, newMsg]);
+                        fetchNui('sendMessage', { userId, content: url, type: 'image' });
+                    }
+                },
+                {
+                    default: { type: 'Photo', camera: 'rear' },
+                    permissions: { toggleFlash: true, flipCamera: true, takePhoto: true }
+                }
+            );
+        } else {
+            const mockUrl = IMAGES.posts.desert;
+            const newMsg: ChatMessage = {
+                id: Date.now().toString(),
+                content: '',
+                fromMe: true,
+                time: now(),
+                type: 'image',
                 mediaUrl: mockUrl
             };
             setMessages(prev => [...prev, newMsg]);
@@ -148,7 +257,7 @@ export const ChatScreen: React.FC<ChatScreenProps> = ({ userId, userName, userAv
     return (
         <div className="flex flex-col h-full bg-gray-50 dark:bg-gray-900">
             {/* Header */}
-            <div className="flex items-center gap-3 px-3 py-3 bg-white dark:bg-gray-800 border-b border-gray-100 dark:border-gray-700 shrink-0">
+            <div className="flex items-center gap-3 px-3 pt-16 pb-3 bg-white dark:bg-gray-800 border-b border-gray-100 dark:border-gray-700 shrink-0">
                 <button onClick={onBack} className="p-1 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-full transition-colors">
                     <span className="material-symbols-rounded text-gray-700 dark:text-gray-300 text-2xl">arrow_back</span>
                 </button>
@@ -175,6 +284,7 @@ export const ChatScreen: React.FC<ChatScreenProps> = ({ userId, userName, userAv
                         type={msg.type}
                         mediaUrl={msg.mediaUrl}
                         amount={msg.amount}
+                        onMediaClick={(url) => setViewingMedia(url)}
                     />
                 ))}
                 <div ref={messagesEndRef} />
@@ -232,22 +342,22 @@ export const ChatScreen: React.FC<ChatScreenProps> = ({ userId, userName, userAv
                 {showActions && (
                     <div ref={actionsRef} className="flex gap-4 mb-3 px-1 animate-fade-in">
                         <button
-                            onClick={() => handleSendMedia('image')}
+                            onClick={handlePickGallery}
                             className="flex flex-col items-center gap-1"
                         >
                             <div className="w-11 h-11 rounded-full bg-blue-50 dark:bg-blue-900/30 flex items-center justify-center hover:bg-blue-100 dark:hover:bg-blue-900/50 transition-colors">
-                                <span className="material-symbols-rounded text-blue-500">image</span>
+                                <span className="material-symbols-rounded text-blue-500">photo_library</span>
                             </div>
-                            <span className="text-[10px] text-gray-500 dark:text-gray-400 font-medium">Photo</span>
+                            <span className="text-[10px] text-gray-500 dark:text-gray-400 font-medium">Galeria</span>
                         </button>
                         <button
-                            onClick={() => handleSendMedia('video')}
+                            onClick={handleCaptureCamera}
                             className="flex flex-col items-center gap-1"
                         >
                             <div className="w-11 h-11 rounded-full bg-purple-50 dark:bg-purple-900/30 flex items-center justify-center hover:bg-purple-100 dark:hover:bg-purple-900/50 transition-colors">
-                                <span className="material-symbols-rounded text-purple-500">videocam</span>
+                                <span className="material-symbols-rounded text-purple-500">photo_camera</span>
                             </div>
-                            <span className="text-[10px] text-gray-500 dark:text-gray-400 font-medium">Video</span>
+                            <span className="text-[10px] text-gray-500 dark:text-gray-400 font-medium">Camera</span>
                         </button>
                         <button
                             onClick={() => { setShowActions(false); setShowPaymentModal(true); }}
@@ -285,6 +395,24 @@ export const ChatScreen: React.FC<ChatScreenProps> = ({ userId, userName, userAv
                     </button>
                 </div>
             </div>
+
+            {/* Fullscreen Media Viewer */}
+            {viewingMedia && (
+                <div className="absolute inset-0 z-[100] bg-black/95 flex items-center justify-center animate-fade-in" onClick={() => setViewingMedia(null)}>
+                    <button
+                        onClick={() => setViewingMedia(null)}
+                        className="absolute top-14 right-4 z-10 w-10 h-10 rounded-full bg-white/10 backdrop-blur-md flex items-center justify-center text-white hover:bg-white/20 transition-colors"
+                    >
+                        <span className="material-symbols-rounded">close</span>
+                    </button>
+                    <img
+                        src={viewingMedia}
+                        alt="Media"
+                        className="max-w-full max-h-[85vh] object-contain"
+                        onClick={(e) => e.stopPropagation()}
+                    />
+                </div>
+            )}
         </div>
     );
 };

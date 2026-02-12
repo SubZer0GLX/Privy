@@ -1,5 +1,6 @@
 import React from 'react';
 import { PaymentCurrency } from '../types';
+import { PrismaIcon } from './PrismaIcon';
 
 interface ProfileHeaderProps {
     banner: string;
@@ -90,7 +91,7 @@ export const ProfileHeader: React.FC<ProfileHeaderProps> = ({
                 </div>
                 {isPremium && price && (
                     <p className="text-xs font-medium text-gray-400 dark:text-gray-500">
-                        {paymentCurrency === 'diamonds' ? `💎 ${price}` : `$${price}`} / semana
+                        {paymentCurrency === 'diamonds' ? <><PrismaIcon className="w-4 h-4 inline-block mr-1" />{price}</> : `$${price}`} / semana
                     </p>
                 )}
             </div>

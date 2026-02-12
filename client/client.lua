@@ -105,6 +105,18 @@ RegisterNUICallback("getPosts", function(data, cb)
     cb(result)
 end)
 
+RegisterNUICallback("getPost", function(data, cb)
+    local p = promise.new()
+    TriggerServerEvent("privy:server:getPost", data.postId)
+
+    RegisterNetEvent("privy:client:getPostResponse", function(response)
+        p:resolve(response)
+    end)
+
+    local result = Citizen.Await(p)
+    cb(result)
+end)
+
 RegisterNUICallback("createPost", function(data, cb)
     local p = promise.new()
     TriggerServerEvent("privy:server:createPost", data.content, data.image, data.images, data.visibility)
@@ -134,6 +146,46 @@ RegisterNUICallback("tipPost", function(data, cb)
     TriggerServerEvent("privy:server:tipPost", data.postId, data.amount)
 
     RegisterNetEvent("privy:client:tipPostResponse", function(response)
+        p:resolve(response)
+    end)
+
+    local result = Citizen.Await(p)
+    cb(result)
+end)
+
+-- =====================
+-- COMMENTS CALLBACKS
+-- =====================
+
+RegisterNUICallback("getComments", function(data, cb)
+    local p = promise.new()
+    TriggerServerEvent("privy:server:getComments", data.postId)
+
+    RegisterNetEvent("privy:client:commentsResponse", function(response)
+        p:resolve(response)
+    end)
+
+    local result = Citizen.Await(p)
+    cb(result)
+end)
+
+RegisterNUICallback("addComment", function(data, cb)
+    local p = promise.new()
+    TriggerServerEvent("privy:server:addComment", data.postId, data.content)
+
+    RegisterNetEvent("privy:client:addCommentResponse", function(response)
+        p:resolve(response)
+    end)
+
+    local result = Citizen.Await(p)
+    cb(result)
+end)
+
+RegisterNUICallback("getLikedPosts", function(data, cb)
+    local p = promise.new()
+    TriggerServerEvent("privy:server:getLikedPosts")
+
+    RegisterNetEvent("privy:client:likedPostsResponse", function(response)
         p:resolve(response)
     end)
 
@@ -290,6 +342,18 @@ RegisterNUICallback("discover", function(data, cb)
     cb(result)
 end)
 
+RegisterNUICallback("searchUsers", function(data, cb)
+    local p = promise.new()
+    TriggerServerEvent("privy:server:searchUsers", data.query)
+
+    RegisterNetEvent("privy:client:searchUsersResponse", function(response)
+        p:resolve(response)
+    end)
+
+    local result = Citizen.Await(p)
+    cb(result)
+end)
+
 RegisterNUICallback("followUser", function(data, cb)
     local p = promise.new()
     TriggerServerEvent("privy:server:followUser", data.userId)
@@ -318,6 +382,54 @@ RegisterNUICallback("getStories", function(data, cb)
     cb(result)
 end)
 
+RegisterNUICallback("getMyStories", function(data, cb)
+    local p = promise.new()
+    TriggerServerEvent("privy:server:getMyStories")
+
+    RegisterNetEvent("privy:client:myStoriesResponse", function(response)
+        p:resolve(response)
+    end)
+
+    local result = Citizen.Await(p)
+    cb(result)
+end)
+
+RegisterNUICallback("getMyPosts", function(data, cb)
+    local p = promise.new()
+    TriggerServerEvent("privy:server:getMyPosts")
+
+    RegisterNetEvent("privy:client:myPostsResponse", function(response)
+        p:resolve(response)
+    end)
+
+    local result = Citizen.Await(p)
+    cb(result)
+end)
+
+RegisterNUICallback("deleteStory", function(data, cb)
+    local p = promise.new()
+    TriggerServerEvent("privy:server:deleteStory", data.storyId)
+
+    RegisterNetEvent("privy:client:deleteStoryResponse", function(response)
+        p:resolve(response)
+    end)
+
+    local result = Citizen.Await(p)
+    cb(result)
+end)
+
+RegisterNUICallback("deletePost", function(data, cb)
+    local p = promise.new()
+    TriggerServerEvent("privy:server:deletePost", data.postId)
+
+    RegisterNetEvent("privy:client:deletePostResponse", function(response)
+        p:resolve(response)
+    end)
+
+    local result = Citizen.Await(p)
+    cb(result)
+end)
+
 RegisterNUICallback("createStory", function(data, cb)
     local p = promise.new()
     TriggerServerEvent("privy:server:createStory", data.mediaUrl, data.caption, data.type)
@@ -328,6 +440,24 @@ RegisterNUICallback("createStory", function(data, cb)
 
     local result = Citizen.Await(p)
     cb(result)
+end)
+
+RegisterNUICallback("pickPhoto", function(data, cb)
+    components.setGallery({
+        includeImages = true,
+        includeVideos = false,
+        onSelect = function(selected)
+            local photo = type(selected) == 'table' and (selected.src and selected or selected[1]) or selected
+            if photo and photo.src then
+                cb({ success = true, url = photo.src })
+            else
+                cb({ success = false })
+            end
+        end,
+        onCancel = function()
+            cb({ success = false })
+        end
+    })
 end)
 
 RegisterNUICallback("capturePhoto", function(data, cb)
@@ -428,6 +558,73 @@ end)
 -- =====================
 -- SUBSCRIPTION CALLBACKS
 -- =====================
+
+-- =====================
+-- REAL-TIME MESSAGE LISTENER
+-- =====================
+
+RegisterNetEvent("privy:client:newMessage", function(data)
+    SendNuiMessage(json.encode({
+        type = 'privy:newMessage',
+        data = data
+    }))
+end)
+
+-- =====================
+-- WALLET CALLBACKS
+-- =====================
+
+RegisterNUICallback("getWallet", function(data, cb)
+    local p = promise.new()
+    TriggerServerEvent("privy:server:getWallet")
+
+    RegisterNetEvent("privy:client:walletResponse", function(response)
+        p:resolve(response)
+    end)
+
+    local result = Citizen.Await(p)
+    cb(result)
+end)
+
+RegisterNUICallback("withdrawWallet", function(data, cb)
+    local p = promise.new()
+    TriggerServerEvent("privy:server:withdrawWallet", data.currency, data.amount)
+
+    RegisterNetEvent("privy:client:withdrawWalletResponse", function(response)
+        p:resolve(response)
+    end)
+
+    local result = Citizen.Await(p)
+    cb(result)
+end)
+
+-- =====================
+-- NOTIFICATIONS CALLBACKS
+-- =====================
+
+RegisterNUICallback("getNotifications", function(data, cb)
+    local p = promise.new()
+    TriggerServerEvent("privy:server:getNotifications")
+
+    RegisterNetEvent("privy:client:notificationsResponse", function(response)
+        p:resolve(response)
+    end)
+
+    local result = Citizen.Await(p)
+    cb(result)
+end)
+
+RegisterNUICallback("markNotificationsRead", function(data, cb)
+    local p = promise.new()
+    TriggerServerEvent("privy:server:markNotificationsRead")
+
+    RegisterNetEvent("privy:client:markNotificationsReadResponse", function(response)
+        p:resolve(response)
+    end)
+
+    local result = Citizen.Await(p)
+    cb(result)
+end)
 
 RegisterNUICallback("subscribe", function(data, cb)
     local p = promise.new()

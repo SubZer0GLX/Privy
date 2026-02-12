@@ -1,5 +1,6 @@
 import React from 'react';
 import { IMAGES } from '../constants';
+import { formatTimestamp } from '../utils/nui';
 
 export interface Notification {
     id: string;
@@ -7,6 +8,7 @@ export interface Notification {
     userName: string;
     userAvatar: string;
     userId: string;
+    postId?: string;
     text: string;
     time: string;
     isRead: boolean;
@@ -24,6 +26,7 @@ interface NotificationsPanelProps {
     notifications: Notification[];
     onClose: () => void;
     onUserClick: (userId: string) => void;
+    onPostClick?: (postId: string) => void;
     onMarkAllRead: () => void;
 }
 
@@ -31,14 +34,15 @@ export const NotificationsPanel: React.FC<NotificationsPanelProps> = ({
     notifications,
     onClose,
     onUserClick,
+    onPostClick,
     onMarkAllRead,
 }) => {
     const unreadCount = notifications.filter(n => !n.isRead).length;
 
     return (
-        <div className="absolute inset-0 z-[60] bg-white dark:bg-gray-900 flex flex-col animate-fade-in">
+        <div className="flex flex-col h-full bg-white dark:bg-gray-900 animate-fade-in">
             {/* Header */}
-            <div className="flex items-center justify-between px-4 py-3 border-b border-gray-100 dark:border-gray-700 shrink-0">
+            <div className="flex items-center justify-between px-4 pt-16 pb-3 border-b border-gray-100 dark:border-gray-700 shrink-0">
                 <button onClick={onClose} className="p-1 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-full transition-colors">
                     <span className="material-symbols-rounded text-gray-700 dark:text-gray-300 text-2xl">arrow_back</span>
                 </button>
@@ -64,7 +68,13 @@ export const NotificationsPanel: React.FC<NotificationsPanelProps> = ({
                         return (
                             <div
                                 key={notif.id}
-                                onClick={() => onUserClick(notif.userId)}
+                                onClick={() => {
+                                    if (notif.postId && (notif.type === 'comment' || notif.type === 'like' || notif.type === 'tip')) {
+                                        onPostClick?.(notif.postId);
+                                    } else {
+                                        onUserClick(notif.userId);
+                                    }
+                                }}
                                 className={`flex items-center gap-3 px-4 py-3.5 border-b border-gray-50 dark:border-gray-800 cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-800/50 transition-colors ${!notif.isRead ? 'bg-orange-50/40 dark:bg-orange-900/10' : ''}`}
                             >
                                 <div className="relative shrink-0">
@@ -83,7 +93,7 @@ export const NotificationsPanel: React.FC<NotificationsPanelProps> = ({
                                         <span className="font-bold">{notif.userName}</span>{' '}
                                         {notif.text}
                                     </p>
-                                    <span className="text-[11px] text-gray-400 dark:text-gray-500 mt-0.5 block">{notif.time}</span>
+                                    <span className="text-[11px] text-gray-400 dark:text-gray-500 mt-0.5 block">{formatTimestamp(notif.time)}</span>
                                 </div>
 
                                 {!notif.isRead && (

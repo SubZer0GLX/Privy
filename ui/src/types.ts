@@ -32,6 +32,14 @@ export interface Post {
     likes: number;
     comments: number;
     tipAmount?: number;
+    isLiked?: boolean;
+}
+
+export interface Comment {
+    id: string;
+    user: User;
+    content: string;
+    timestamp: string;
 }
 
 export type NavTab = 'home' | 'search' | 'messages' | 'profile';
