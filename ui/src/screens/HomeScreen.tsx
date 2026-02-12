@@ -100,19 +100,6 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({ onUserClick, onCreateSto
 
     useEffect(() => {
         if (!isDevMode()) {
-            // Load current user profile
-            fetchNui<any>('getProfile', {}).then((result) => {
-                if (result?.success && result.profile) {
-                    const p = result.profile;
-                    setCurrentUser({
-                        id: String(p.id),
-                        username: p.username || 'user',
-                        displayName: p.display_name || p.username || 'You',
-                        avatar: p.avatar || IMAGES.avatars.user,
-                    });
-                }
-            });
-
             // Load posts
             fetchNui<any[]>('getPosts', {}).then((result) => {
                 if (Array.isArray(result)) {
@@ -163,21 +150,32 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({ onUserClick, onCreateSto
                 }
             });
 
-            // Load own stories
-            fetchNui<any>('getMyStories', {}).then((result) => {
-                if (result && Array.isArray(result.items) && result.items.length > 0) {
-                    setMyStory(prev => ({
-                        id: 'my',
-                        user: prev?.user || currentUser,
-                        hasUnseen: false,
-                        items: result.items.map((s: any) => ({
-                            id: String(s.id),
-                            image: s.media_url,
-                            caption: s.caption || undefined,
-                            timestamp: s.created_at || 'now',
-                        })),
-                    }));
-                }
+            // Load own stories (after profile loads to get correct avatar)
+            fetchNui<any>('getProfile', {}).then((profileResult) => {
+                const profileUser: User = profileResult?.success && profileResult.profile ? {
+                    id: String(profileResult.profile.id),
+                    username: profileResult.profile.username || 'user',
+                    displayName: profileResult.profile.display_name || profileResult.profile.username || 'You',
+                    avatar: profileResult.profile.avatar || IMAGES.avatars.user,
+                } : currentUser;
+
+                setCurrentUser(profileUser);
+
+                fetchNui<any>('getMyStories', {}).then((result) => {
+                    if (result && Array.isArray(result.items) && result.items.length > 0) {
+                        setMyStory({
+                            id: 'my',
+                            user: profileUser,
+                            hasUnseen: false,
+                            items: result.items.map((s: any) => ({
+                                id: String(s.id),
+                                image: s.media_url,
+                                caption: s.caption || undefined,
+                                timestamp: s.created_at || 'now',
+                            })),
+                        });
+                    }
+                });
             });
         }
     }, []);
